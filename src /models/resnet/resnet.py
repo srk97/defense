@@ -1,3 +1,4 @@
+"""Code based on official pytorch implementation of resnet models """
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
