@@ -1,10 +1,11 @@
 language: python
 python:
-	- "3.6"
+    - "3.6"
 
 install:
-	- pip install -r requirements.txt
+    - pip install -U pip wheel
+    - pip install -r requirements.txt --progress-bar off
 
 script:
-	- export FILES="$(git diff --name-only $TRAVIS_COMMIT_RANGE)"
-	- python3 src/models/resnet/cifar.py --lr 0.01 --resume True
+    - export FILES="$(git diff --name-only $TRAVIS_COMMIT_RANGE)"
+    - python3 src/models/resnet/cifar.py --lr 0.01 --num_epochs 1
