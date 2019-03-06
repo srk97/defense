@@ -13,9 +13,9 @@ import torchvision.transforms as transforms
 import os
 import argparse
 
-from models.resnet import ResNet18 
-from utils import progress_bar
-from load_data import get_data
+from src.models.resnet import ResNet18 
+from src.utils.model_utils import progress_bar
+from src.utils.load_data import get_data
 
 
 parser = argparse.ArgumentParser(description='PyTorch CIFAR10 Training')
