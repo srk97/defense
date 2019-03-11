@@ -45,6 +45,8 @@ else:
   drive.mount('/content/gdrive')
   OUTPUT_DIR = '/content/gdrive/My Drive/runs'
   if not os.path.isdir(OUTPUT_DIR): os.mkdir(OUTPUT_DIR)
+  OUTPUT_DIR = OUTPUT_DIR + '/' + args.hparams
+  os.mkdir(OUTPUT_DIR)
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 start_step = 0  # start from epoch 0 or last checkpoint epoch
