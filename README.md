@@ -27,3 +27,5 @@ That's it.
 - `!cd defense && git checkout <branch_name>` -> Do this only if you need to run on a branch
 
 - `!python3 defense/train.py --hparams resnet18_default --use_colab True` -> Substitute with the appropriate hparams setting
+
+This will use your google drive to save the model under `runs` directory which can then be shared with others. You will see a prompt asking for a token when you execute the training script on colab. 
