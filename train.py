@@ -6,7 +6,7 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 import torch.backends.cudnn as cudnn
-
+from tqdm import tqdm
 import torchvision
 import torchvision.transforms as transforms
 
@@ -84,7 +84,6 @@ def create_model():
 
 # Training
 def train(steps, trainloader, net, criterion, optimizer, test_loader=None):
-  print('\nStep: %d' % steps)
   net.train()
   train_loss = 0
   correct = 0
@@ -92,9 +91,7 @@ def train(steps, trainloader, net, criterion, optimizer, test_loader=None):
   n_epochs = 1
   batch_idx = 0
   iterator = iter(trainloader)
-  for batch_idx in range(start_step, steps, 1):
-
-    print("Training step: ", batch_idx)
+  for batch_idx in tqdm(range(start_step, steps, 1)):
     if batch_idx == n_epochs * len(trainloader):
       n_epochs = n_epochs + 1
       iterator = iter(trainloader)
@@ -112,10 +109,6 @@ def train(steps, trainloader, net, criterion, optimizer, test_loader=None):
     if batch_idx % hparams.eval_and_save_every == 0:
       print("Train Accuracy: {}".format(correct / total))
       test(hparams.eval_steps, testloader, net, criterion, int(batch_idx))
-
-    progress_bar(
-        batch_idx, steps, 'Loss: %.3f | Acc: %.3f%% (%d/%d)' %
-        (train_loss / (batch_idx + 1), 100. * correct / total, correct, total))
 
 
 def test(steps, testloader, net, criterion, curr_step):
