@@ -6,9 +6,9 @@ Targeted Dropout by Aidan N. Gomez, Ivan Zhang, Kevin Swersky, Yarin Gal, and Ge
 The code release for the same.
 """
 
-def targeted_weight_dropout(w, params, is_training):
+def targeted_weight_dropout(w, params, is_training): 
     drop_rate = params.drop_rate
-    targ_perc = params.targ_rate
+    targ_perc = params.targ_perc
     w_shape = list(w.size())
     w = w.view(w_shape[0], -1).transpose(0, 1)
     norm = torch.abs(w)
@@ -30,7 +30,7 @@ def targeted_weight_dropout(w, params, is_training):
 
 def targeted_unit_dropout(w, params, is_training):
     drop_rate = params.drop_rate
-    targ_perc = params.targ_rate
+    targ_perc = params.targ_perc
 
     w_shape = list(w.size())
     w = w.view(w_shape[0], -1).transpose(0, 1)

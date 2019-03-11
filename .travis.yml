@@ -2,10 +2,13 @@ language: python
 python:
     - "3.6"
 
+notifications:
+      slack: dlreadinggroup:xdn2AqHZ3Pt3u8N3MmZuCklr
+  
 install:
     - pip install -U pip wheel
     - pip install -r requirements.txt --progress-bar off
 
 script:
     - export FILES="$(git diff --name-only $TRAVIS_COMMIT_RANGE)"
-    - python3 train.py --lr 0.01 --steps 1
+    - python3 train.py --hparams resnet18_default --steps 1
