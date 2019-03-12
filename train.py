@@ -70,6 +70,7 @@ def create_model():
                             sorted(os.listdir(OUTPUT_DIR))[-1])
     net.load_state_dict(checkpoint['net'])
     best_acc = checkpoint['acc']
+    global start_step
     start_step = checkpoint['step']
 
   criterion = nn.CrossEntropyLoss()
