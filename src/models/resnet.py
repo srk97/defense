@@ -90,9 +90,9 @@ class ResNet(nn.Module):
             out = self.layer1[i](out, hparams)
         for i in range(len(self.layer2)):
             out = self.layer2[i](out, hparams)
-        for i in range(len(self.layer2)):
+        for i in range(len(self.layer3)):
             out = self.layer3[i](out, hparams)
-        for i in range(len(self.layer2)):
+        for i in range(len(self.layer4)):
             out = self.layer4[i](out, hparams)
         out = F.avg_pool2d(out, 4)
         out = out.view(out.size(0), -1)
