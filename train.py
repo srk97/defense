@@ -119,7 +119,7 @@ def test(steps, testloader, net, criterion, curr_step):
   total = 0
   n_epochs = 1
   with torch.no_grad():
-    iterator = iter(trainloader)
+    iterator = iter(testloader)
     for batch_idx in range(steps):
       if batch_idx == (n_epochs * len(testloader)):
         n_epochs = n_epochs + 1
