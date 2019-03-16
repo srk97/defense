@@ -9,9 +9,10 @@ import torch.backends.cudnn as cudnn
 from tqdm import tqdm
 import torchvision
 import torchvision.transforms as transforms
-
+import re
 import os
 import argparse
+import re
 
 from src.models.resnet import ResNet18
 from src.utils.misc_utils import progress_bar
@@ -66,8 +67,13 @@ def create_model():
     # Load checkpoint.
     print('==> Resuming from checkpoint..')
     assert os.path.isdir(OUTPUT_DIR), 'Error: no checkpoint directory found!'
-    checkpoint = torch.load(OUTPUT_DIR + '/' +
-                            sorted(os.listdir(OUTPUT_DIR))[-1])
+    model_dir = (OUTPUT_DIR + '/' + 'ckpt-' + str(
+        max([
+            int(re.findall("[0-9]+\.", x)[0][:-1])
+            for x in os.listdir(OUTPUT_DIR)
+        ])) + '.t7')
+    print(model_dir)
+    checkpoint = torch.load(model_dir)
     net.load_state_dict(checkpoint['net'])
     best_acc = checkpoint['acc']
     global start_step
@@ -89,7 +95,7 @@ def train(steps, trainloader, net, criterion, optimizer, test_loader=None):
   train_loss = 0
   correct = 0
   total = 0
-  n_epochs = 1
+  n_epochs = (start_step // len(trainloader)) + 1
   batch_idx = 0
   iterator = iter(trainloader)
   for batch_idx in tqdm(range(start_step, steps, 1)):
@@ -140,6 +146,7 @@ def test(steps, testloader, net, criterion, curr_step):
   acc = 100. * correct / total
   print("Test Accuracy: ", acc)
   print('Saving..')
+  print("File name" + OUTPUT_DIR + '/ckpt-{}.t7'.format(str(curr_step)))
   state = {
       'net': net.state_dict(),
       'acc': acc,
