@@ -1,6 +1,9 @@
-from setup_test import create_model
-import attacks
 import torch
+
+from .attacks import PGD, FGSM
+from .setup_test import create_model
+
+from ..hparams.registry import get_hparams
 
 
 class Test_Attack:

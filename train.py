@@ -91,6 +91,7 @@ def create_model():
 
 # Training
 def train(steps, trainloader, net, criterion, optimizer, test_loader=None):
+
   net.train()
   train_loss = 0
   correct = 0
@@ -113,7 +114,7 @@ def train(steps, trainloader, net, criterion, optimizer, test_loader=None):
     correct += predicted.eq(targets).sum().item()
 
     if batch_idx % hparams.eval_and_save_every == 0:
-      print("Train Accuracy: {}".format(correct / total))
+      print("Train Accuracy: {}\nLoss: {}".format((correct / total), loss))
       test(hparams.eval_steps, testloader, net, criterion, int(batch_idx))
 
     optimizer.step()
@@ -156,6 +157,7 @@ def test(steps, testloader, net, criterion, curr_step):
     os.mkdir(OUTPUT_DIR)
 
   torch.save(state, OUTPUT_DIR + '/ckpt-{}.t7'.format(str(curr_step)))
+  net.train()
 
 
 if __name__ == "__main__":
