@@ -13,6 +13,7 @@ import re
 import os
 import argparse
 import re
+import logging
 
 from src.models.resnet import ResNet18
 from src.utils.misc_utils import progress_bar
@@ -39,21 +40,35 @@ hparams = get_hparams(args.hparams)
 
 if not args.use_colab:
   OUTPUT_DIR = 'runs/' + args.hparams if args.output_dir is None else args.output_dir
+  output_eval_file = 'runs/results_' + args.hparams + '.txt'
   if args.output_dir is None and not os.path.isdir('runs'):
     os.mkdir('runs')
 else:
   from google.colab import drive
   drive.mount('/content/gdrive')
   OUTPUT_DIR = '/content/gdrive/My Drive/runs'
+  output_eval_file = OUTPUT_DIR + '/results_' + args.hparams + '.txt'
   if not os.path.isdir(OUTPUT_DIR): os.mkdir(OUTPUT_DIR)
   OUTPUT_DIR = OUTPUT_DIR + '/' + args.hparams
   if not os.path.isdir(OUTPUT_DIR): os.mkdir(OUTPUT_DIR)
+
+if args.resume:
+  filemode = 'a'
+else:
+  filemode = 'w'
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 start_step = 0  # start from epoch 0 or last checkpoint epoch
 # get the data
 trainloader, testloader = get_data(hparams.batch_size)
 """Fucntion to instantiate the resnet model and return it"""
+
+logging.basicConfig(filename=output_eval_file,
+                    format='%(asctime)s %(message)s',
+                    datefmt='%H:%M:%S',
+                    level=logging.INFO,
+                    filemode=filemode)
+logger = logging.getLogger(__name__)
 
 
 def create_model():
@@ -114,7 +129,9 @@ def train(steps, trainloader, net, criterion, optimizer, test_loader=None):
     correct += predicted.eq(targets).sum().item()
 
     if batch_idx % hparams.eval_and_save_every == 0:
-      print("Train Accuracy: {}\nLoss: {}".format((correct / total), loss))
+      print("\nTrain Accuracy: {}, Loss: {}".format((correct / total), loss))
+      logger.info("Steps {}".format(batch_idx))
+      logger.info("Train Accuracy: {}, Loss: {}".format((correct / total), loss))
       test(hparams.eval_steps, testloader, net, criterion, int(batch_idx))
 
     optimizer.step()
@@ -146,8 +163,9 @@ def test(steps, testloader, net, criterion, curr_step):
   # Save checkpoint.
   acc = 100. * correct / total
   print("Test Accuracy: ", acc)
+  logger.info("Test Accuracy: {} \n".format(acc))
   print('Saving..')
-  print("File name" + OUTPUT_DIR + '/ckpt-{}.t7'.format(str(curr_step)))
+  print("Filename " + OUTPUT_DIR + '/ckpt-{}.t7'.format(str(curr_step)))
   state = {
       'net': net.state_dict(),
       'acc': acc,
