@@ -41,16 +41,19 @@ def targeted_unit_dropout(w, params, is_training):
 
   w_shape = list(w.size())
   w = w.view(w_shape[0], -1).transpose(0, 1)
+  
   norm = torch.norm(w, dim=0)
   idx = int(targ_perc * int(w.shape[1]))
   sorted_norms = torch.sort(norm)
   threshold = (sorted_norms[0])[idx]
   mask = (norm < threshold)[None, :]
   mask = mask.repeat(w.shape[0], 1)
+  
+  
   m = ((1. - drop_rate) < torch.empty(list(w.size())).uniform_(0, 1)).to(device)
-  mask = torch.where(m & mask, torch.ones(w.shape, dtype=torch.float32),
-                     torch.zeros(w.shape, dtype=torch.float32)).to(device)
+  mask = torch.where(m & mask, torch.ones(w.shape, dtype=torch.float32).to(device),
+                     torch.zeros(w.shape, dtype=torch.float32).to(device)).to(device)
 
   x = (1 - mask) * w
   x = x.transpose(0, 1).view(w_shape)
-  return (x.cuda())
+  return (x)
