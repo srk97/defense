@@ -10,7 +10,7 @@ class HParams():
     self.targeted_unit = False
     self.targ_perc = 0.0
     self.drop_rate = 0.0
-    self.learning_rate = 0.4
+    self.learning_rate = 0.1
     self.momentum = 0.9
     self.weight_decay = 5e-4
     self.num_epochs = 256
@@ -99,6 +99,7 @@ def resnet18_targ_unit_050_drop_050():
 def resnet34_default():
   hps = HParams()
   hps.model = "ResNet34"
+  hps.learning_rate = 0.4
   return hps
 
 
