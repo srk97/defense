@@ -6,6 +6,7 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 import torch.backends.cudnn as cudnn
+import numpy as np
 from tqdm import tqdm
 import torchvision
 import torchvision.transforms as transforms
@@ -63,17 +64,28 @@ start_step = 0  # start from epoch 0 or last checkpoint epoch
 trainloader, testloader = get_data(hparams.batch_size)
 """Fucntion to instantiate the resnet model and return it"""
 
-logging.basicConfig(filename=output_eval_file,
-                    format='%(asctime)s %(message)s',
-                    datefmt='%H:%M:%S',
-                    level=logging.INFO,
-                    filemode=filemode)
+logging.basicConfig(
+    filename=output_eval_file,
+    format='%(asctime)s %(message)s',
+    datefmt='%H:%M:%S',
+    level=logging.INFO,
+    filemode=filemode)
 logger = logging.getLogger(__name__)
 
+"""Function to print current Learning rate"""
+def get_lr(optimizer):
+    for param_group in optimizer.param_groups:
+        return param_group['lr']
 
 def create_model():
   net = get_model(hparams.model)
   net = net.to(device)
+  optimizer = optim.SGD(
+      net.parameters(),
+      lr=hparams.learning_rate,
+      momentum=hparams.momentum,
+      weight_decay=hparams.weight_decay)
+  scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[40000,60000,80000], gamma=0.1)
   if device == 'cuda':
     net = torch.nn.DataParallel(net)
     cudnn.benchmark = True
@@ -93,19 +105,15 @@ def create_model():
     best_acc = checkpoint['acc']
     global start_step
     start_step = checkpoint['step']
+    scheduler.load_state_dict(checkpoint['scheduler'])
 
   criterion = nn.CrossEntropyLoss()
-  optimizer = optim.SGD(
-      net.parameters(),
-      lr=hparams.learning_rate,
-      momentum=hparams.momentum,
-      weight_decay=hparams.weight_decay)
-
-  return net, criterion, optimizer
+  
+  return net, criterion, optimizer, scheduler
 
 
 # Training
-def train(steps, trainloader, net, criterion, optimizer, test_loader=None):
+def train(steps, trainloader, net, criterion, optimizer, scheduler, test_loader=None):
 
   net.train()
   train_loss = 0
@@ -120,6 +128,10 @@ def train(steps, trainloader, net, criterion, optimizer, test_loader=None):
       iterator = iter(trainloader)
     inputs, targets = iterator.next()
     inputs, targets = inputs.to(device), targets.to(device)
+    inputs_mean = torch.mean(inputs, 0)
+    inputs_std = torch.clamp(
+        torch.std(inputs, 0), min=1. / np.sqrt(inputs[0].numel()))
+    inputs = (inputs - inputs_mean) / inputs_std
     optimizer.zero_grad()
     outputs = net(inputs, hparams)
     loss = criterion(outputs, targets)
@@ -131,14 +143,16 @@ def train(steps, trainloader, net, criterion, optimizer, test_loader=None):
     if batch_idx % hparams.eval_and_save_every == 0:
       print("\nTrain Accuracy: {}, Loss: {}".format((correct / total), loss))
       logger.info("Steps {}".format(batch_idx))
-      logger.info("Train Accuracy: {}, Loss: {}".format((correct / total), loss))
-      test(hparams.eval_steps, testloader, net, criterion, int(batch_idx))
+      logger.info("Train Accuracy: {}, Loss: {}".format((correct / total),
+                                                        loss))
+      test(hparams.eval_steps, testloader, net, criterion, scheduler, int(batch_idx))
 
     optimizer.step()
+    scheduler.step()
     train_loss += loss.item()
 
 
-def test(steps, testloader, net, criterion, curr_step):
+def test(steps, testloader, net, criterion, scheduler, curr_step):
   net.eval()
   test_loss = 0
   correct = 0
@@ -152,6 +166,10 @@ def test(steps, testloader, net, criterion, curr_step):
         iterator = iter(testloader)
       inputs, targets = iterator.next()
       inputs, targets = inputs.to(device), targets.to(device)
+      inputs_mean = torch.mean(inputs, 0)
+      inputs_std = torch.clamp(
+          torch.std(inputs, 0), min=1. / np.sqrt(inputs[0].numel()))
+      inputs = (inputs - inputs_mean) / inputs_std
       outputs = net(inputs, hparams)
       loss = criterion(outputs, targets)
 
@@ -168,6 +186,7 @@ def test(steps, testloader, net, criterion, curr_step):
   print("Filename " + OUTPUT_DIR + '/ckpt-{}.t7'.format(str(curr_step)))
   state = {
       'net': net.state_dict(),
+      'scheduler':scheduler.state_dict(),
       'acc': acc,
       'step': curr_step,
   }
@@ -179,7 +198,7 @@ def test(steps, testloader, net, criterion, curr_step):
 
 
 if __name__ == "__main__":
-  net, criterion, optimizer = create_model()
+  net, criterion, optimizer, scheduler = create_model()
   trainloader, testloader = get_data()
   if args.steps != 0:
     train(
@@ -188,9 +207,10 @@ if __name__ == "__main__":
         net,
         criterion,
         optimizer,
+        scheduler,
         test_loader=testloader)
-    test(args.steps, testloader, net, criterion, args.steps + 1)
+    test(args.steps, testloader, net, criterion, scheduler, args.steps + 1)
   else:
     steps = (int)((hparams.num_epochs * 50000) / hparams.batch_size)
-    train(steps, trainloader, net, criterion, optimizer, test_loader=testloader)
-    test(hparams.eval_steps, testloader, net, criterion, steps + 1)
+    train(steps, trainloader, net, criterion, optimizer, scheduler, test_loader=testloader)
+    test(hparams.eval_steps, testloader, net, criterion, scheduler, steps + 1)
