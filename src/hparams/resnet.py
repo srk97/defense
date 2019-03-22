@@ -16,6 +16,8 @@ class HParams():
     self.num_epochs = 256
     self.eval_and_save_every = 1000
     self.eval_steps = 100
+    self.linearize = False
+    self.linearize_coeff = 1.0
     #TODO enforce the below flags
     self.image_aug = False
     self.per_image_standardization = True
@@ -33,6 +35,19 @@ def resnet18_targ_weight_075_drop_033():
   hps.targeted_weight = True
   hps.targ_perc = 0.75
   hps.drop_rate = 0.33
+  hps.eval_steps = 10
+
+  return hps
+
+
+@register
+def resnet18_targ_weight_075_drop_033_linearize():
+  hps = resnet18_default()
+  hps.targeted_weight = True
+  hps.targ_perc = 0.75
+  hps.drop_rate = 0.33
+  hps.linearize = True
+  hps.linearize_coeff = 1.0
 
   return hps
 
