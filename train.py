@@ -71,11 +71,13 @@ logging.basicConfig(
     level=logging.INFO,
     filemode=filemode)
 logger = logging.getLogger(__name__)
-
 """Function to print current Learning rate"""
+
+
 def get_lr(optimizer):
-    for param_group in optimizer.param_groups:
-        return param_group['lr']
+  for param_group in optimizer.param_groups:
+    return param_group['lr']
+
 
 def create_model():
   net = get_model(hparams.model)
@@ -85,7 +87,8 @@ def create_model():
       lr=hparams.learning_rate,
       momentum=hparams.momentum,
       weight_decay=hparams.weight_decay)
-  scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[40000,60000,80000], gamma=0.1)
+  scheduler = optim.lr_scheduler.MultiStepLR(
+      optimizer, milestones=[40000, 60000, 80000], gamma=0.1)
   if device == 'cuda':
     net = torch.nn.DataParallel(net)
     cudnn.benchmark = True
@@ -108,12 +111,18 @@ def create_model():
     scheduler.load_state_dict(checkpoint['scheduler'])
 
   criterion = nn.CrossEntropyLoss()
-  
+
   return net, criterion, optimizer, scheduler
 
 
 # Training
-def train(steps, trainloader, net, criterion, optimizer, scheduler, test_loader=None):
+def train(steps,
+          trainloader,
+          net,
+          criterion,
+          optimizer,
+          scheduler,
+          test_loader=None):
 
   net.train()
   train_loss = 0
@@ -123,6 +132,7 @@ def train(steps, trainloader, net, criterion, optimizer, scheduler, test_loader=
   batch_idx = 0
   iterator = iter(trainloader)
   for batch_idx in tqdm(range(start_step, steps, 1)):
+    hparams.gs = batch_idx
     if batch_idx == n_epochs * len(trainloader):
       n_epochs = n_epochs + 1
       iterator = iter(trainloader)
@@ -145,7 +155,8 @@ def train(steps, trainloader, net, criterion, optimizer, scheduler, test_loader=
       logger.info("Steps {}".format(batch_idx))
       logger.info("Train Accuracy: {}, Loss: {}".format((correct / total),
                                                         loss))
-      test(hparams.eval_steps, testloader, net, criterion, scheduler, int(batch_idx))
+      test(hparams.eval_steps, testloader, net, criterion, scheduler,
+           int(batch_idx))
 
     optimizer.step()
     scheduler.step()
@@ -186,7 +197,7 @@ def test(steps, testloader, net, criterion, scheduler, curr_step):
   print("Filename " + OUTPUT_DIR + '/ckpt-{}.t7'.format(str(curr_step)))
   state = {
       'net': net.state_dict(),
-      'scheduler':scheduler.state_dict(),
+      'scheduler': scheduler.state_dict(),
       'acc': acc,
       'step': curr_step,
   }
@@ -200,6 +211,7 @@ def test(steps, testloader, net, criterion, scheduler, curr_step):
 if __name__ == "__main__":
   net, criterion, optimizer, scheduler = create_model()
   trainloader, testloader = get_data()
+  print(vars(hparams))
   if args.steps != 0:
     train(
         args.steps,
@@ -212,5 +224,12 @@ if __name__ == "__main__":
     test(args.steps, testloader, net, criterion, scheduler, args.steps + 1)
   else:
     steps = (int)((hparams.num_epochs * 50000) / hparams.batch_size)
-    train(steps, trainloader, net, criterion, optimizer, scheduler, test_loader=testloader)
+    train(
+        steps,
+        trainloader,
+        net,
+        criterion,
+        optimizer,
+        scheduler,
+        test_loader=testloader)
     test(hparams.eval_steps, testloader, net, criterion, scheduler, steps + 1)
