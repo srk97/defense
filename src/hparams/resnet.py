@@ -17,7 +17,7 @@ class HParams():
     self.weight_decay = 5e-4
     self.num_epochs = 256
     self.eval_and_save_every = 1000
-    self.eval_steps = 100
+    self.eval_steps = 10
     self.linearize = False
     self.linearize_coeff = 1.0
     self.gs = -1

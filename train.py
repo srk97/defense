@@ -224,16 +224,5 @@ if __name__ == "__main__":
     test(args.steps, testloader, net, criterion, scheduler, args.steps + 1)
   else:
     steps = (int)((hparams.num_epochs * 50000) / hparams.batch_size)
-<<<<<<< HEAD
     #train(steps, trainloader, net, criterion, optimizer, scheduler, test_loader=testloader)
-=======
-    train(
-        steps,
-        trainloader,
-        net,
-        criterion,
-        optimizer,
-        scheduler,
-        test_loader=testloader)
->>>>>>> ramping
     test(hparams.eval_steps, testloader, net, criterion, scheduler, steps + 1)
