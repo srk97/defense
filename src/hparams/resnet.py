@@ -8,6 +8,8 @@ class HParams():
     self.batch_size = 128
     self.targeted_weight = False
     self.targeted_unit = False
+    self.ramping_targeted_weight = False
+    self.ramping_targeted_unit = False
     self.targ_perc = 0.0
     self.drop_rate = 0.0
     self.learning_rate = 0.1
@@ -18,6 +20,7 @@ class HParams():
     self.eval_steps = 100
     self.linearize = False
     self.linearize_coeff = 1.0
+    self.gs = -1
     #TODO enforce the below flags
     self.image_aug = False
     self.per_image_standardization = True
@@ -27,6 +30,11 @@ class HParams():
 def resnet18_default():
   hps = HParams()
   return hps
+
+
+#=======================================
+# Targeted Weight
+#========================================
 
 
 @register
@@ -77,6 +85,30 @@ def resnet18_targ_weight_050_drop_050():
 
 
 @register
+def resnet18_targ_weight_099_drop_099_ramping():
+  hps = resnet18_default()
+  hps.targ_perc = 0.99
+  hps.drop_rate = 0.99
+  hps.ramping_targeted_weight = True
+
+  return hps
+
+
+@register
+def resnet18_targ_weight_099_drop_099_ramping_linearize():
+  hps = resnet18_default()
+  hps.targ_perc = 0.99
+  hps.drop_rate = 0.99
+  hps.ramping_targeted_weight = True
+  hps.linearize = True
+
+  return hps
+
+
+#==============================================
+# Targeted Unit
+#==============================================
+@register
 def resnet18_targ_unit_075_drop_033():
   hps = resnet18_default()
   hps.targeted_unit = True
@@ -111,11 +143,29 @@ def resnet18_targ_unit_050_drop_050():
 
 
 @register
+def resnet18_targ_unit_099_drop_090_ramping():
+  hps = resnet18_default()
+  hps.targ_perc = 0.99
+  hps.drop_rate = 0.90
+  hps.ramping_targeted_unit = True
+
+  return hps
+
+
+#==============================================
+
+
+@register
 def resnet34_default():
   hps = HParams()
   hps.model = "ResNet34"
   hps.learning_rate = 0.4
   return hps
+
+
+#=======================================
+# Targeted Weight
+#========================================
 
 
 @register
@@ -153,6 +203,21 @@ def resnet34_targ_weight_050_drop_050():
 
 
 @register
+def resnet34_targ_weight_099_drop_099_ramping():
+  hps = resnet34_default()
+  hps.targ_perc = 0.99
+  hps.drop_rate = 0.99
+  hps.ramping_targeted_weight = True
+
+  return hps
+
+
+#==============================================
+# Targeted Unit
+#==============================================
+
+
+@register
 def resnet34_targ_unit_075_drop_033():
   hps = resnet34_default()
   hps.targeted_unit = True
@@ -182,5 +247,15 @@ def resnet34_targ_unit_075_drop_066():
 def resnet34_targ_unit_050_drop_050():
   hps = resnet34_targ_unit_075_drop_050()
   hps.targ_perc = 0.50
+
+  return hps
+
+
+@register
+def resnet34_targ_unit_099_drop_090_ramping():
+  hps = resnet34_default()
+  hps.targ_perc = 0.99
+  hps.drop_rate = 0.90
+  hps.ramping_targeted_unit = True
 
   return hps

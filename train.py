@@ -132,6 +132,7 @@ def train(steps,
   batch_idx = 0
   iterator = iter(trainloader)
   for batch_idx in tqdm(range(start_step, steps, 1)):
+    hparams.gs = batch_idx
     if batch_idx == n_epochs * len(trainloader):
       n_epochs = n_epochs + 1
       iterator = iter(trainloader)
@@ -210,6 +211,7 @@ def test(steps, testloader, net, criterion, scheduler, curr_step):
 if __name__ == "__main__":
   net, criterion, optimizer, scheduler = create_model()
   trainloader, testloader = get_data()
+  print(vars(hparams))
   if args.steps != 0:
     train(
         args.steps,
@@ -222,5 +224,16 @@ if __name__ == "__main__":
     test(args.steps, testloader, net, criterion, scheduler, args.steps + 1)
   else:
     steps = (int)((hparams.num_epochs * 50000) / hparams.batch_size)
+<<<<<<< HEAD
     #train(steps, trainloader, net, criterion, optimizer, scheduler, test_loader=testloader)
+=======
+    train(
+        steps,
+        trainloader,
+        net,
+        criterion,
+        optimizer,
+        scheduler,
+        test_loader=testloader)
+>>>>>>> ramping
     test(hparams.eval_steps, testloader, net, criterion, scheduler, steps + 1)
