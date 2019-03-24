@@ -15,6 +15,7 @@ import os
 import argparse
 import re
 import logging
+from advertorch.attacks import LinfPGDAttack
 
 from src.models.resnet import ResNet18
 from src.utils.misc_utils import progress_bar
@@ -29,6 +30,8 @@ parser.add_argument(
     '--steps', default=0, type=int, help='No of steps in an epoch')
 parser.add_argument(
     '--resume', '-r', action='store_true', help='resume from checkpoint')
+parser.add_argument(
+    '--attack', '-a', action='store_true', help='Attack Instead')
 parser.add_argument(
     '--output_dir',
     type=str,
@@ -108,6 +111,7 @@ def create_model():
     best_acc = checkpoint['acc']
     global start_step
     start_step = checkpoint['step']
+    hparams.gs = start_step
     scheduler.load_state_dict(checkpoint['scheduler'])
 
   criterion = nn.CrossEntropyLoss()
@@ -208,21 +212,60 @@ def test(steps, testloader, net, criterion, scheduler, curr_step):
   net.train()
 
 
+def attack(net, testloader, steps):
+  iterator = iter(testloader)
+  adversary = LinfPGDAttack(
+      net,
+      loss_fn=nn.CrossEntropyLoss(reduction="sum"),
+      eps=0.031,
+      nb_iter=40,
+      eps_iter=0.01,
+      rand_init=True,
+      clip_min=0.0,
+      clip_max=1.0,
+      targeted=False,
+      hparams=hparams)
+  correct = 0
+  total = 0
+  for batch_idx in range(steps):
+    inputs, targets = iterator.next()
+    inputs, targets = inputs.to(device), targets.to(device)
+
+    inputs_mean = torch.mean(inputs, 0)
+    inputs_std = torch.clamp(
+        torch.std(inputs, 0), min=1. / np.sqrt(inputs[0].numel()))
+    inputs = (inputs - inputs_mean) / inputs_std
+
+    adv_untargeted = adversary.perturb(inputs, targets)
+
+    adv_outputs = net(adv_untargeted, hparams)
+    _, predicted = adv_outputs.max(1)
+    total += targets.size(0)
+    correct += predicted.eq(targets).sum().item()
+
+  print("Accuracy after attack: ", 100. * float(correct / total))
+
+
 if __name__ == "__main__":
   net, criterion, optimizer, scheduler = create_model()
   trainloader, testloader = get_data()
-  print(vars(hparams))
-  if args.steps != 0:
-    train(
-        args.steps,
-        trainloader,
-        net,
-        criterion,
-        optimizer,
-        scheduler,
-        test_loader=testloader)
-    test(args.steps, testloader, net, criterion, scheduler, args.steps + 1)
+
+  if args.attack:
+    net.eval()
+    attack(net, testloader, hparams.eval_steps)
   else:
-    steps = (int)((hparams.num_epochs * 50000) / hparams.batch_size)
-    #train(steps, trainloader, net, criterion, optimizer, scheduler, test_loader=testloader)
-    test(hparams.eval_steps, testloader, net, criterion, scheduler, steps + 1)
+    print(vars(hparams))
+    if args.steps != 0:
+      train(
+          args.steps,
+          trainloader,
+          net,
+          criterion,
+          optimizer,
+          scheduler,
+          test_loader=testloader)
+      test(args.steps, testloader, net, criterion, scheduler, args.steps + 1)
+    else:
+      steps = (int)((hparams.num_epochs * 50000) / hparams.batch_size)
+      #train(steps, trainloader, net, criterion, optimizer, scheduler, test_loader=testloader)
+      test(hparams.eval_steps, testloader, net, criterion, scheduler, steps + 1)

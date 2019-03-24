@@ -32,6 +32,13 @@ def resnet18_default():
   return hps
 
 
+@register
+def resnet18_default_linearize():
+  hps = HParams()
+  hps.linearize = True
+  return hps
+
+
 #=======================================
 # Targeted Weight
 #========================================
