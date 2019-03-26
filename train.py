@@ -109,6 +109,7 @@ def create_model():
     global start_step
     start_step = checkpoint['step']
     scheduler.load_state_dict(checkpoint['scheduler'])
+    optimizer.load_state_dict(checkpoint['optimizer'])
 
   criterion = nn.CrossEntropyLoss()
 
@@ -138,10 +139,6 @@ def train(steps,
       iterator = iter(trainloader)
     inputs, targets = iterator.next()
     inputs, targets = inputs.to(device), targets.to(device)
-    inputs_mean = torch.mean(inputs, 0)
-    inputs_std = torch.clamp(
-        torch.std(inputs, 0), min=1. / np.sqrt(inputs[0].numel()))
-    inputs = (inputs - inputs_mean) / inputs_std
     optimizer.zero_grad()
     outputs = net(inputs, hparams)
     loss = criterion(outputs, targets)
@@ -155,7 +152,7 @@ def train(steps,
       logger.info("Steps {}".format(batch_idx))
       logger.info("Train Accuracy: {}, Loss: {}".format((correct / total),
                                                         loss))
-      test(hparams.eval_steps, testloader, net, criterion, scheduler,
+      test(hparams.eval_steps, testloader, net, criterion, scheduler, optimizer,
            int(batch_idx))
 
     optimizer.step()
@@ -163,7 +160,7 @@ def train(steps,
     train_loss += loss.item()
 
 
-def test(steps, testloader, net, criterion, scheduler, curr_step):
+def test(steps, testloader, net, criterion, scheduler, optimizer, curr_step):
   net.eval()
   test_loss = 0
   correct = 0
@@ -177,10 +174,6 @@ def test(steps, testloader, net, criterion, scheduler, curr_step):
         iterator = iter(testloader)
       inputs, targets = iterator.next()
       inputs, targets = inputs.to(device), targets.to(device)
-      inputs_mean = torch.mean(inputs, 0)
-      inputs_std = torch.clamp(
-          torch.std(inputs, 0), min=1. / np.sqrt(inputs[0].numel()))
-      inputs = (inputs - inputs_mean) / inputs_std
       outputs = net(inputs, hparams)
       loss = criterion(outputs, targets)
 
@@ -200,6 +193,7 @@ def test(steps, testloader, net, criterion, scheduler, curr_step):
       'scheduler': scheduler.state_dict(),
       'acc': acc,
       'step': curr_step,
+      'optimizer': optimizer.state_dict(),
   }
   if not os.path.isdir(OUTPUT_DIR):
     os.mkdir(OUTPUT_DIR)
@@ -221,7 +215,8 @@ if __name__ == "__main__":
         optimizer,
         scheduler,
         test_loader=testloader)
-    test(args.steps, testloader, net, criterion, scheduler, args.steps + 1)
+    test(args.steps, testloader, net, criterion, scheduler, optimizer,
+         args.steps + 1)
   else:
     steps = (int)((hparams.num_epochs * 50000) / hparams.batch_size)
     train(
@@ -232,4 +227,5 @@ if __name__ == "__main__":
         optimizer,
         scheduler,
         test_loader=testloader)
-    test(hparams.eval_steps, testloader, net, criterion, scheduler, steps + 1)
+    test(hparams.eval_steps, testloader, net, criterion, scheduler, optimizer,
+         steps + 1)
