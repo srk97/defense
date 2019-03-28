@@ -63,9 +63,19 @@ def targeted_unit_dropout(w, params, is_training):
 def ramping_targeted_weight_dropout(w, params, is_training):
   drop_rate = params.drop_rate * min(1.0, float(params.gs) / 40000.)
 
-  targ_perc = 0.95 * params.targ_perc * min(1.0, float(params.gs) / 20000.)
-  targ_perc = targ_perc + 0.05 * params.targ_perc * max(
-      0.0, min(1.0, (float(params.gs) - 20000.) / 20000.))
+  if params.extreme_pruning:
+    num_weights = w.numel() / w.size()[0]
+    targ_perc_target = (num_weights - 1) / num_weights
+    targ_perc = 0.95 * targ_perc_target * min(1.0, float(params.gs) / 20000.)
+    targ_perc = targ_perc + 0.05 * targ_perc_target * max(
+        0.0, min(1.0, (float(params.gs) - 20000.) / 20000.))
+
+    if targ_perc == 1:
+      raise ValueError
+  else:
+    targ_perc = 0.95 * params.targ_perc * min(1.0, float(params.gs) / 20000.)
+    targ_perc = targ_perc + 0.05 * params.targ_perc * max(
+        0.0, min(1.0, (float(params.gs) - 20000.) / 20000.))
 
   w_shape = list(w.size())
   w = w.view(w_shape[0], -1).transpose(0, 1)

@@ -261,5 +261,13 @@ if __name__ == "__main__":
       test(args.steps, testloader, net, criterion, scheduler, args.steps + 1)
     else:
       steps = (int)((hparams.num_epochs * 50000) / hparams.batch_size)
-      #train(steps, trainloader, net, criterion, optimizer, scheduler, test_loader=testloader)
-      test(hparams.eval_steps, testloader, net, criterion, scheduler, steps + 1)
+      train(
+          steps,
+          trainloader,
+          net,
+          criterion,
+          optimizer,
+          scheduler,
+          test_loader=testloader)
+      test(hparams.eval_steps, testloader, net, criterion, scheduler, optimizer,
+           steps + 1)

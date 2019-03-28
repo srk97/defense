@@ -21,6 +21,7 @@ class HParams():
     self.linearize = False
     self.linearize_coeff = 1.0
     self.gs = -1
+    self.extreme_pruning = False
     #TODO enforce the below flags
     self.image_aug = False
     self.per_image_standardization = True
@@ -102,6 +103,17 @@ def resnet18_targ_weight_099_drop_099_ramping():
   hps.targ_perc = 0.99
   hps.drop_rate = 0.99
   hps.ramping_targeted_weight = True
+
+  return hps
+
+
+@register
+def resnet18_targ_weight_099_drop_099_ramping_xtreme():
+  hps = resnet18_default()
+  hps.targ_perc = 0.99
+  hps.drop_rate = 0.99
+  hps.ramping_targeted_weight = True
+  hps.extreme_pruning = True
 
   return hps
 
