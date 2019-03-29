@@ -12,3 +12,4 @@ install:
 script:
     - export FILES="$(git diff --name-only $TRAVIS_COMMIT_RANGE)"
     - python3 train.py --hparams resnet18_default --steps 1
+    - python3 -m src.attacks.test --attk_hparams fgsm --model_hparams resnet18_default --eval_steps 1

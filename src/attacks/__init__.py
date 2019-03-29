@@ -1,5 +1,4 @@
-__all__ = ['attacks', 'setup_test', 'test']
+__all__ = ['aparams']
 
+from .aparams import *
 from .attacks import *
-from .setup_test import *
-from .test import *
