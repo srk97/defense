@@ -258,7 +258,8 @@ if __name__ == "__main__":
           optimizer,
           scheduler,
           test_loader=testloader)
-      test(args.steps, testloader, net, criterion, scheduler, args.steps + 1)
+      test(args.steps, testloader, net, criterion, scheduler, optimizer,
+           args.steps + 1)
     else:
       steps = (int)((hparams.num_epochs * 50000) / hparams.batch_size)
       train(
