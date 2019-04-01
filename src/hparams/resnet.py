@@ -108,12 +108,37 @@ def resnet18_targ_weight_099_drop_099_ramping():
 
 
 @register
-def resnet18_targ_weight_099_drop_099_ramping_xtreme():
+def resnet18_targ_weight_ramping_xtreme_2():
   hps = resnet18_default()
   hps.targ_perc = 0.99
   hps.drop_rate = 0.99
   hps.ramping_targeted_weight = True
   hps.extreme_pruning = True
+  hps.xtreme_keep = 2
+
+  return hps
+
+
+@register
+def resnet18_targ_weight_ramping_xtreme_3():
+  hps = resnet18_default()
+  hps.targ_perc = 0.99
+  hps.drop_rate = 0.99
+  hps.ramping_targeted_weight = True
+  hps.extreme_pruning = True
+  hps.xtreme_keep = 3
+
+  return hps
+
+
+@register
+def resnet18_targ_weight_ramping_xtreme_4():
+  hps = resnet18_default()
+  hps.targ_perc = 0.99
+  hps.drop_rate = 0.99
+  hps.ramping_targeted_weight = True
+  hps.extreme_pruning = True
+  hps.xtreme_keep = 3
 
   return hps
 

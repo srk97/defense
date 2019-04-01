@@ -65,7 +65,7 @@ def ramping_targeted_weight_dropout(w, params, is_training):
 
   if params.extreme_pruning:
     num_weights = w.numel() / w.size()[0]
-    targ_perc_target = (num_weights - 1) / num_weights
+    targ_perc_target = (num_weights - params.xtreme_keep) / num_weights
     targ_perc = 0.95 * targ_perc_target * min(1.0, float(params.gs) / 20000.)
     targ_perc = targ_perc + 0.05 * targ_perc_target * max(
         0.0, min(1.0, (float(params.gs) - 20000.) / 20000.))
