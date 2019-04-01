@@ -156,8 +156,11 @@ def train(steps,
       logger.info("Steps {}".format(batch_idx))
       logger.info("Train Accuracy: {}, Loss: {}".format((correct / total),
                                                         loss))
+
       test(hparams.eval_steps, testloader, net, criterion, scheduler, optimizer,
            int(batch_idx))
+
+
 
     optimizer.step()
     scheduler.step()
