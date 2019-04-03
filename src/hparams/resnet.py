@@ -138,7 +138,7 @@ def resnet18_targ_weight_ramping_xtreme_4():
   hps.drop_rate = 0.99
   hps.ramping_targeted_weight = True
   hps.extreme_pruning = True
-  hps.xtreme_keep = 3
+  hps.xtreme_keep = 4
 
   return hps
 
