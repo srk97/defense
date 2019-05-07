@@ -1,6 +1,7 @@
 # defense
 Research on adversarial defense
 
+Contributors: [Sid](https://github.com/srk97), [Ashwath Shetty](https://github.com/ashwath98), [Anisha Pal](https://github.com/Anipal), [Dwaraknath](https://github.com/DwaraknathT), [Sanjay](https://github.com/cyphysan), [Amit Jindal](https://github.com/rootally)
 
 # Flags
 
