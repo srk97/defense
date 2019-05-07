@@ -10,7 +10,7 @@ Research on adversarial defense
 
 - resume: Load from existing models
 
-- output_dir: The output directory in which the model has to be saved. It's recommended that *you don't* use this option since the model gets saved with an appropriate name in the `runs/` folder (automatically created). In case you need to specify the `output_dir`, don't do dumb shit like `path/.../model-1` -  If you look back later, you won't be able to figure out what the training settings are.
+- output_dir: The output directory in which the model has to be saved. It's recommended that *you don't* use this option since the model gets saved with an appropriate name in the `runs/` folder (automatically created).
 
 - use_colab: If you want to train using Google Colab, set this to True. Further instructions ahead.
 
